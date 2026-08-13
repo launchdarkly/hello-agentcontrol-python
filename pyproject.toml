@@ -1,0 +1,22 @@
+[project]
+name = "hello-agentcontrol-python"
+version = "0.1.0"
+description = "Hello LaunchDarkly for Python Agent Control SDK"
+requires-python = ">=3.12"
+dependencies = [
+  "launchdarkly-ai-python[otel]>=0.1.3",
+  "launchdarkly-ai-openai-messages>=0.1.4",
+  "launchdarkly-ai-openai-agents>=0.1.4",
+  "launchdarkly-ai-claude-messages>=0.1.4",
+  "launchdarkly-ai-claude-agents>=0.1.4",
+  "launchdarkly-ai-langchain-messages>=0.1.4",
+  "launchdarkly-ai-langchain-agents>=0.1.4",
+  "python-dotenv>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/launchdarkly/hello-agentcontrol-python"
+Repository = "https://github.com/launchdarkly/hello-agentcontrol-python"
+
+[tool.uv]
+package = false
