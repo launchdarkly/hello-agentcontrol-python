@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bootstrap the sample app: sync deps and create/update .env.
+"""Bootstrap the sample app: sync deps (including OpenTelemetry) and create/update .env.
 
 Usage:
     uv run setup.py
@@ -50,6 +50,36 @@ def ensure_env(sdk_key: str | None, config_key: str | None) -> None:
     ENV_FILE.write_text(content, encoding="utf-8")
 
 
+def sync_dependencies() -> int:
+    print("Syncing dependencies with uv, including OpenTelemetry...")
+    result = subprocess.run(["uv", "sync"], cwd=ROOT)
+    if result.returncode != 0:
+        print("uv sync failed.", file=sys.stderr)
+        return result.returncode
+
+    check = subprocess.run(
+        [
+            "uv",
+            "run",
+            "python",
+            "-c",
+            "import opentelemetry.sdk, opentelemetry.exporter.otlp.proto.http",
+        ],
+        cwd=ROOT,
+    )
+    if check.returncode != 0:
+        print(
+            "OpenTelemetry is not installed. "
+            'Expected opentelemetry-sdk and opentelemetry-exporter-otlp-proto-http '
+            'from launchdarkly-ai-python[otel].',
+            file=sys.stderr,
+        )
+        return check.returncode or 1
+
+    print("OpenTelemetry is installed.")
+    return 0
+
+
 def main() -> int:
     sdk_key = sys.argv[1].strip() if len(sys.argv) > 1 else None
     config_key = sys.argv[2].strip() if len(sys.argv) > 2 else None
@@ -62,11 +92,9 @@ def main() -> int:
         print("Provide both keys, or neither.", file=sys.stderr)
         return 1
 
-    print("Syncing dependencies with uv...")
-    result = subprocess.run(["uv", "sync"], cwd=ROOT)
-    if result.returncode != 0:
-        print("uv sync failed.", file=sys.stderr)
-        return result.returncode
+    sync_result = sync_dependencies()
+    if sync_result != 0:
+        return sync_result
 
     try:
         ensure_env(sdk_key or None, config_key or None)
